@@ -25,7 +25,7 @@ spec:
       containers:
         - name: ecommerce-pod 
           image: mohamedtaha7/ecommerce-api 
-          imagePullPolicy: Alwaysg
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
