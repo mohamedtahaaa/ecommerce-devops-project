@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong@Pass123"
+
+    ports:
+      - "1433:1433"
+
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+    restart: unless-stopped
+
+  ecommerce-api:
+
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+
+    container_name: ecommerce-api
+
+    depends_on:
+      - sqlserver
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__ASPNETCoreD11: "Server=sqlserver;Database=ASPNET_API_EcommerceAPI;User Id=sa;Password=YourStrong@Pass123;TrustServerCertificate=True;MultipleActiveResultSets=True"
+
+    restart: unless-stopped
+
+volumes:
+
+  sqlserver-data:

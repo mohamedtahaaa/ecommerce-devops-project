@@ -1,0 +1,30 @@
+# Git
+.git
+.github
+
+# Visual Studio
+.vs
+.vscode
+
+# Build artifacts
+**/bin
+**/obj
+
+# User-specific files
+**/*.user
+**/*.suo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+docs/
+
+# Docker
+docker-compose.yml
+
+# Environment files
+.env
+.env.*
