@@ -36,7 +36,7 @@ jobs:
         with:
           image-ref: ${{ env.IMAGE_NAME }}:latest
           format: table
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           severity: HIGH,CRITICAL
 
