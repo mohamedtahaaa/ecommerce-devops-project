@@ -14,6 +14,7 @@ using FluentValidation;
 using ECommerce.API.Extensions;
 using ECommerce.API.Middleware;
 using Microsoft.AspNetCore.Mvc;
+using ECommerce.API.Seed;
 
 /*
  * ================================================================================
@@ -194,13 +195,11 @@ var app = builder.Build();
 // ========================
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
+    await scope.ServiceProvider.SeedDataAsync();
 
-    var context = services.GetRequiredService<ApplicationDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    await context.Database.MigrateAsync();
-
-    await services.SeedDataAsync();
+    await DatabaseSeeder.SeedAsync(db);
 }
 
 // ========================
