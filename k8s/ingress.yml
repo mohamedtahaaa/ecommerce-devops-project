@@ -8,10 +8,11 @@ spec:
   rules:
     - host: ecommerce.local
       http:
-        path: /
-        pathType: Prefix
-        backend: 
-          service:
-            name: ecommerce-svc
-            port:
-              number: 80
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: 
+              service:
+                name: ecommerce-svc
+                port:
+                  number: 80
