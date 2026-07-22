@@ -31,20 +31,14 @@ jobs:
             -f ./src/Dockerfile \
             ./src
 
-      - name: Install Trivy
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.64.1_Linux-64bit.deb
-          sudo dpkg -i trivy_0.64.1_Linux-64bit.deb
-
-      - name: Scan Docker Image
-        run: |
-          trivy image \
-            --severity HIGH,CRITICAL \
-            --exit-code 1 \
-            --ignore-unfixed \
-            $IMAGE_NAME:latest
+      - name: Run Trivy Scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:latest
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
 
       - name: Push Latest Image
         run: docker push $IMAGE_NAME:latest
