@@ -194,7 +194,13 @@ var app = builder.Build();
 // ========================
 using (var scope = app.Services.CreateScope())
 {
-    await scope.ServiceProvider.SeedDataAsync();
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<ApplicationDbContext>();
+
+    await context.Database.MigrateAsync();
+
+    await services.SeedDataAsync();
 }
 
 // ========================
