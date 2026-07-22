@@ -43,4 +43,4 @@ spec:
       volumes:
         - name: ecommerce-volume
           persistentVolumeClaim:
-            claimName: ecommerce-sql-pvc
+            claimName: ecommerce-pvc
