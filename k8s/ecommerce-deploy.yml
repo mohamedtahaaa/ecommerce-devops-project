@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-deploy
+  namespace: ecommerce
+  labels:
+    app: ecommerce
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce  
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  template:
+    metadata:
+      labels:
+        app: ecommerce
+    spec:
+      containers:
+        - name: ecommerce-pod 
+          image: mohamedtaha7/ecommerce-api 
+          imagePullPolicy: Alwaysg
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+            - name: ConnectionStrings__ASPNETCoreD11
+              valueFrom:
+                secretKeyRef:
+                  name: sqlserver-secret
+                  key: ConnectionStrings__ASPNETCoreD11
+
+          volumeMounts:
+            - mountPath: /app/wwwroot/images
+              name: ecommerce-volume
+      volumes:
+        - name: ecommerce-volume
+          persistentVolumeClaim:
+            claimName: ecommerce-sql-pvc
