@@ -6,7 +6,9 @@ async function loadProducts() {
 
         const response = await fetch("/api/products");
 
-        const products = await response.json();
+        const result = await response.json();
+
+        const products = result.data.items;
 
         status.innerHTML = "🟢 API Connected";
 
@@ -18,15 +20,19 @@ async function loadProducts() {
 
             container.innerHTML += `
 
-            <div class="card">
+                <div class="card">
 
-                <h2>${product.name}</h2>
+                    <h2>${product.name}</h2>
 
-                <p><strong>Category:</strong> ${product.categoryName}</p>
+                    <p>${product.description}</p>
 
-                <p class="price">$${product.price}</p>
+                    <p><strong>Category:</strong> ${product.category.name}</p>
 
-            </div>
+                    <p><strong>Stock:</strong> ${product.stockQuantity}</p>
+
+                    <p class="price">$${product.price}</p>
+
+                </div>
 
             `;
 
@@ -36,7 +42,9 @@ async function loadProducts() {
 
     catch(err){
 
-        status.innerHTML="🔴 Cannot connect to API";
+        console.error(err);
+
+        status.innerHTML = "🔴 Cannot connect to API";
 
     }
 
