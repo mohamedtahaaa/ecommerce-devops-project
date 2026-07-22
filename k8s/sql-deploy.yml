@@ -1,10 +1,7 @@
 apiVersion: apps/v1
-kind: Deployment 
+kind: Deployment
 metadata:
   name: sql-deploy
-  namespace: ecommerce
-  labels:
-    app: sql 
 spec:
   replicas: 1
   selector:
@@ -15,25 +12,34 @@ spec:
       labels:
         app: sql
     spec:
+      securityContext:
+        fsGroup: 10001
+
       containers:
-        - name: sql-pod
-          image: mcr.microsoft.com/mssql/server:2022-latest
-          ports:
-            - containerPort: 1433
-          env:
-            - name: ACCEPT_EULA
-              value: "Y"
-            - name: MSSQL_SA_PASSWORD
-              valueFrom: 
-                secretKeyRef:
-                  name: sqlserver-secret
-                  key: MSSQL_SA_PASSWORD
-          
-          volumeMounts:
-            - name: sql-volume
-              mountPath: /var/opt/mssql
-      
-      volumes:
+      - name: sql-pod
+        image: mcr.microsoft.com/mssql/server:2022-latest
+
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+
+        ports:
+        - containerPort: 1433
+
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sqlserver-secret
+              key: MSSQL_SA_PASSWORD
+
+        volumeMounts:
         - name: sql-volume
-          persistentVolumeClaim:
-            claimName: sql-pvc
+          mountPath: /var/opt/mssql
+
+      volumes:
+      - name: sql-volume
+        persistentVolumeClaim:
+          claimName: sql-pvc
