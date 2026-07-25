@@ -37,23 +37,5 @@ services:
 
     restart: unless-stopped
 
-
-  frontend:
-
-    build:
-      context: ./frontend
-
-    container_name: frontend
-
-    depends_on:
-      - ecommerce-api
-
-    ports:
-      - "80:80"
-
-    restart: unless-stopped
-
-
 volumes:
-
   sqlserver-data:
