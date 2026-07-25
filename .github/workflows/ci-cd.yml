@@ -1,4 +1,4 @@
-name: cloud-native-devops-workflow #1
+name: cloud-native-devops-workflow #2
 on:
   push:
     branches:
