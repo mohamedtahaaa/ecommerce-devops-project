@@ -1,396 +1,380 @@
-# 🛒 E-Commerce API
+# 🚀 Cloud-Native DevOps Project on AWS
 
-Backend system for browsing products, managing cart, and placing orders.
-Built with **ASP.NET Core 9**, **EF Core 9**, **Microsoft Identity**, **JWT**, and **FluentValidation**.
-
----
-
-## 📐 Architecture
-
-### 3-Layer Architecture (PL → BLL → DAL) + Common
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                   ECommerce.API (PL)                    │  ← Presentation Layer
-│  Controllers | DTOs | Filters | Middleware | Swagger    │
-│  (Includes ValidationFilter & ImagesController)          │
-└──────────────────────────┬──────────────────────────────┘
-                           │ references
-┌──────────────────────────▼──────────────────────────────┐
-│                  ECommerce.BLL                          │  ← Business Logic Layer
-│  Services | Interfaces | Mappings | Validators          │
-└──────────────────────────┬──────────────────────────────┘
-                           │ references
-┌──────────────────────────▼──────────────────────────────┐
-│                  ECommerce.DAL                          │  ← Data Access Layer
-│  Entities | DbContext | Repositories | UoW | Config      │
-└──────────────────────────┬──────────────────────────────┘
-                           │ references
-┌──────────────────────────▼──────────────────────────────┐
-│                  ECommerce.Common                       │  ← Shared Layer
-│  Result Pattern | Constants | Helpers | Extensions       │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Why 3-Layer Architecture?
-- **Separation of Concerns**: كل طبقة مسؤولة عن حاجة معينة
-- **Testability**: كل طبقة ممكن تُختبر لوحدها
-- **Maintainability**: لو حبيت تغير الـ Database، مش هتحتاج تغير غير الـ DAL
-- **Reusability**: الـ BLL ممكن تُستخدم مع أي UI (Web, Mobile, Desktop)
-
-### Design Patterns Used
-
-| Pattern | Purpose |
-|---------|---------|
-| **Repository Pattern** | Generic & Non-Generic repos for data access abstraction |
-| **Unit of Work** | Ensures all DB operations in one request are a single transaction |
-| **Result Pattern** | Consistent API responses without throwing exceptions for business errors |
-| **DTO Pattern** | Separates API request/response from database entities |
-| **Factory Method** | Result.Success() / Result.Failure() for clean response creation |
+> Production-ready end-to-end DevOps pipeline for deploying an ASP.NET Core E-Commerce API on Kubernetes using AWS, Docker, GitHub Actions, Trivy, NGINX Ingress, and AWS Application Load Balancer.
 
 ---
 
-## 📁 Project Structure
+# 📌 Project Overview
 
-```
-ECommerceAPI/
-├── ECommerce.Common/              ← Shared Layer
-│   ├── Result/
-│   │   └── Result.cs              ← Result<T> and Result (Response Wrapper)
-│   ├── Constants/
-│   │   └── PolicyNames.cs         ← Auth policy & role constants
-│   ├── Helpers/
-│   │   └── ClaimsPrincipalExtensions.cs ← Extract UserId from JWT Claims
-│   └── ECommerce.Common.csproj
+This project demonstrates the implementation of a complete Cloud-Native DevOps workflow for deploying an ASP.NET Core E-Commerce application into a Kubernetes cluster running on AWS.
+
+The project focuses on designing and automating the complete software delivery lifecycle including:
+
+- Docker Containerization
+- CI/CD Automation
+- Kubernetes Deployment
+- Cloud Infrastructure
+- Persistent Storage
+- Ingress Management
+- Load Balancing
+- Security Scanning
+
+> **Note**
+>
+> The ASP.NET Core E-Commerce API used in this project was developed by a teammate (Application Developer).
+>
+> My responsibility was implementing the complete DevOps infrastructure and deployment pipeline around the application, including containerization, CI/CD, Kubernetes, AWS integration, storage, ingress, and production deployment.
+
+---
+
+# 🏗 Architecture
+
+                                          ┌───────────────────────────┐
+                                          │        Developer          │
+                                          │      (GitHub Push)        │
+                                          └─────────────┬─────────────┘
+                                                        │
+                                                        ▼
+                                         ┌─────────────────────────────┐
+                                         │       GitHub Repository     │
+                                         │  ecommerce-devops-project   │
+                                         └─────────────┬───────────────┘
+                                                       │
+                                             GitHub Actions CI/CD
+                                                       │
+                 ┌─────────────────────────────────────┴─────────────────────────────────────┐
+                 │                                                                           │
+                 ▼                                                                           ▼
+      ┌─────────────────────┐                                                ┌──────────────────────────┐
+      │      Build Job      │                                                │      Deploy Job         │
+      │                     │                                                │                          │
+      │ • Docker Build      │                                                │ kubectl apply -f k8s/   │
+      │ • Docker Push       │────────────── Docker Hub ─────────────────────▶│ using kubeconfig Secret │
+      └─────────────────────┘                                                └─────────────┬────────────┘
+                                                                                           │
+                                                                                           ▼
+================================================================================ AWS =================================================================================
+
+                                             Kubernetes Cluster (kubeadm)
+
+      ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │                                                                                                                     │
+      │      Control Plane EC2                                                                       Worker EC2 #1          │
+      │ ┌────────────────────────┐                                                      ┌────────────────────────────────┐  │
+      │ │ API Server             │                                                      │ ecommerce Deployment           │  │
+      │ │ Scheduler              │                                                      │                                │  │
+      │ │ Controller Manager     │                                                      │  ┌────────────────────────┐    │  │
+      │ │ etcd                   │                                                      │  │ Ecommerce API Pod      │    │  │
+      │ │ kubectl                │                                                      │  │ ASP.NET Core (.NET 9)  │    │  │
+      │ └────────────────────────┘                                                      │  └────────────┬───────────┘    │  │
+      │                                                                                 │               │                │  │
+      │                                                                                 │               ▼                │  │
+      │                                                                                 │      PVC → Amazon EBS          │  │
+      │                                                                                 └────────────────────────────────┘  │
+      │                                                                                                                     │
+      │                                                                                 Worker EC2 #2                       │
+      │                                                      ┌──────────────────────────────────────────────────────────┐   │
+      │                                                      │ SQL Server Deployment                                    │   │
+      │                                                      │                                                          │   │
+      │                                                      │  ┌────────────────────────────┐                          │   │
+      │                                                      │  │ SQL Server 2022 Pod        │                          │   │
+      │                                                      │  └──────────────┬─────────────┘                          │   │
+      │                                                      │                 │                                        │   │
+      │                                                      │                 ▼                                        │   │
+      │                                                      │         PVC → Amazon EBS                                 │   │
+      │                                                      └──────────────────────────────────────────────────────────┘   │
+      │                                                                                                                     │
+      │──────────────────────────────────────────── Kubernetes Networking ───────────────────────────────────────────────── │
+      │                                                                                                                     │
+      │      ClusterIP Service (sql-svc)             ClusterIP Service (ecommerce-svc)                                      │
+      │                     ▲                                      ▲                                                        │
+      │                     │                                      │                                                        │
+      │                     └─────────────── API ↔ SQL Communication ─────────────────────────────────────────────────────┐ │
+      │                                                                                                                   │ │
+      │                                    NGINX Ingress Controller                                                       │ │
+      │                                             ▲                                                                     │ │
+      └─────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────── ┘ │
+                                                    │                                                                       │
+                                                    ▼                                                                       │
+                                       AWS Application Load Balancer (ALB)                                                  │
+                                                    │                                                                       │
+                                                    ▼                                                                       │
+                                              Internet / Browser                                                            │
+---
+
+# ⚙ Technology Stack
+
+| Category | Technology |
+|------------|----------------|
+| Cloud | AWS EC2 |
+| Containerization | Docker |
+| Container Registry | Docker Hub |
+| CI/CD | GitHub Actions |
+| Security | Trivy |
+| Orchestration | Kubernetes (kubeadm) |
+| Ingress | NGINX Ingress Controller |
+| Load Balancer | AWS Application Load Balancer (ALB) |
+| Storage | AWS EBS CSI Driver |
+| Database | Microsoft SQL Server |
+| Application | ASP.NET Core Web API |
+
+---
+
+# 📂 Repository Structure
+
+```text
+.
+├── .github
+│   └── workflows
+│       └── ci-cd.yml
 │
-├── ECommerce.DAL/                 ← Data Access Layer
-│   ├── Entities/
-│   │   ├── ApplicationUser.cs     ← Extended Identity User
-│   │   ├── Category.cs            ← Product Category
-│   │   ├── Product.cs             ← Product entity
-│   │   ├── Cart.cs                ← Shopping Cart item
-│   │   ├── Order.cs               ← Order header
-│   │   └── OrderItem.cs           ← Order line items
-│   ├── Context/
-│   │   └── ApplicationDbContext.cs← EF Core DbContext + Identity
-│   ├── Configurations/
-│   │   └── EntityConfigurations.cs← Fluent API configurations
-│   ├── Repositories/
-│   │   ├── Generic/
-│   │   │   ├── IGenericRepository.cs ← Generic repo interface
-│   │   │   └── GenericRepository.cs  ← Generic repo implementation
-│   │   ├── Interfaces/
-│   │   │   └── INonGenericRepositories.cs ← Specific repo interfaces (inherited from IGenericRepository)
-│   │   └── NonGenericRepositories.cs    ← Product, Cart, Order, Category repos
-│   ├── UnitOfWork/
-│   │   ├── IUnitOfWork.cs         ← UoW interface
-│   │   └── UnitOfWork.cs          ← UoW implementation
-│   └── ECommerce.DAL.csproj
+├── src
+│   └── ASP.NET Core API
 │
-├── ECommerce.BLL/                 ← Business Logic Layer
-│   ├── Services/
-│   │   ├── AuthService.cs         ← Register & Login logic
-│   │   ├── CategoryService.cs     ← Category CRUD
-│   │   ├── ProductService.cs      ← Product CRUD + Search + Pagination
-│   │   ├── CartService.cs         ← Cart management
-│   │   ├── OrderService.cs        ← Order processing (transactional)
-│   │   └── ImageService.cs        ← File upload handling
-│   ├── Interfaces/
-│   │   └── IServiceInterfaces.cs  ← All service contracts + DTOs
-│   ├── Validators/
-│   │   └── DtoValidators.cs       ← FluentValidation for all DTOs
-│   ├── Mapping/
-│   │   └── MappingProfile.cs      ← AutoMapper profiles
-│   └── ECommerce.BLL.csproj
+├── k8s
+│   ├── 00-namespace.yml
+│   ├── 01-secret.yml
+│   ├── 02-storageclass.yml
+│   ├── 03-sql-pvc.yml
+│   ├── 04-sql-deployment.yml
+│   ├── 05-sql-service.yml
+│   ├── 06-api-pvc.yml
+│   ├── 07-api-deployment.yml
+│   ├── 08-api-service.yml
+│   └── 09-ingress.yml
 │
-├── ECommerce.API/                 ← Presentation Layer
-│   ├── Controllers/
-│   │   ├── AuthController.cs      ← POST /api/auth/register, login
-│   │   ├── CategoriesController.cs← GET/POST/PUT/DELETE /api/categories
-│   │   ├── ProductsController.cs  ← GET/POST/PUT/DELETE /api/products
-│   │   ├── CartController.cs      ← GET/POST/PUT/DELETE /api/cart
-│   │   ├── OrdersController.cs    ← GET/POST /api/orders
-│   │   └── ImageController.cs     ← POST /api/image/upload
-│   ├── Filters/
-│   │   └── ValidationFilter.cs    ← Global validation filter for FluentValidation
-│   ├── Middleware/
-│   │   └── ExceptionMiddleware.cs ← Global error handler
-│   ├── Extensions/
-│   │   └── ServiceExtensions.cs   ← DI registration helpers
-│   ├── Helpers/
-│   │   └── BaseController.cs      ← Consistent response formatting
-│   ├── Program.cs                 ← App entry point + DI setup
-│   ├── appsettings.json           ← Config (DB, JWT, etc.)
-│   └── ECommerce.API.csproj
-│
-└── ECommerce.API.sln              ← Solution file
+├── docker-compose.yml
+├── README.md
+└── docs
+    └── architecture.png
 ```
 
 ---
 
-## 🔐 Authentication & Authorization
+# 🚀 CI/CD Pipeline
 
-### JWT Authentication
-- **Token Generation**: عند الـ Login/Registration بنعمل JWT Token يحتوي على:
-  - `NameIdentifier` → UserId
-  - `Email` → User email
-  - `Role` → User role (Admin, Manager, User)
-  - `Jti` → Unique token ID
-- **Token Extraction**: كل Controller بيستلم الـ Token من الـ `Authorization` header
-- **UserId Extraction**: بنستخدم `User.GetUserId()` من `ClaimsPrincipalExtensions` لاستخراج الـ UserId من الـ JWT Claims
+Every push to the **main** branch automatically triggers the following pipeline:
 
-### Policy-Based Authorization
-| Policy | Required Role(s) | Used On |
-|--------|-----------------|---------|
-| `AdminOnly` | Admin | Create/Update/Delete Categories, Products, Image Upload |
-| `UserOnly` | User, Admin | Cart, Orders (authenticated users) |
-| `AdminOrManager` | Admin, Manager | Reserved for future use |
-
-> **IMPORTANT**: UserId is NEVER passed in request body. It's always extracted from JWT Claims.
-
----
-
-## 🚀 Setup Instructions
-
-### Prerequisites
-- **.NET 9 SDK**
-- SQL Server (Local DB or Local SQLEXPRESS instance)
-- Visual Studio 2022 or VS Code
-
-### Step 1: Clone the Repository
-```bash
-git clone <your-repo-url>
-cd ECommerceAPI
-```
-
-### Step 2: Configure Database
-Edit `ECommerce.API/appsettings.json`:
-```json
-"ConnectionStrings": {
-  "ASPNETCoreD11": "Server=localhost\\SQLEXPRESS;Database=ASPNET_API_EcommerceAPI;Trusted_Connection=True;TrustServerCertificate=True;"
-}
-```
-
-### Step 3: Configure JWT
-Edit `ECommerce.API/appsettings.json`:
-```json
-"Jwt": {
-  "SecretKey": "YourSecretKeyHere_MustBeAtLeast32Characters",
-  "Issuer": "ECommerceAPI",
-  "Audience": "ECommerceUsers",
-  "DurationInMinutes": 1440
-}
-```
-
-### Step 4: Run Migrations
-Generate and apply Code First database migrations:
-```bash
-# Execute from solution root
-dotnet ef migrations add InitialCreate --project ECommerce.DAL --startup-project ECommerce.API
-dotnet ef database update --project ECommerce.DAL --startup-project ECommerce.API
-```
-
-### Step 5: Seed Roles & Run
-```bash
-dotnet run --project ECommerce.API --launch-profile http
-```
-
-### Step 6: Access Scalar Docs
-Open your browser and navigate to:
-```
-http://localhost:5000/scalar/v1
-```
-
-### Step 7: Import Postman Collection
-Import the file `ECommerce_API_Postman_Collection.json` located in the root of the project directly into Postman. It contains:
-- Pre-configured HTTP methods, headers, and endpoints.
-- Automatic extraction and storage of the JWT login token in the `jwt_token` collection variable.
-- Separate folders for Categories, Products, Cart, Orders, and Images.
-
----
-
-## 📡 API Endpoints
-
-### Authentication
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/auth/register` | ❌ | Create new user account |
-| POST | `/api/auth/login` | ❌ | Authenticate and get JWT token |
-
-### Categories
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/categories` | ❌ | Get all categories |
-| GET | `/api/categories/{id}` | ❌ | Get category by ID |
-| POST | `/api/categories` | ✅ Admin | Create category |
-| PUT | `/api/categories/{id}` | ✅ Admin | Update category |
-| DELETE | `/api/categories/{id}` | ✅ Admin | Delete category |
-| POST | `/api/categories/{id}/image` | ✅ Admin | Upload category image |
-
-### Products
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/products?categoryId=&name=&pageNumber=&pageSize=` | ❌ | Get products (filter + search + pagination) |
-| GET | `/api/products/{id}` | ❌ | Get product details |
-| POST | `/api/products` | ✅ Admin | Create product |
-| PUT | `/api/products/{id}` | ✅ Admin | Update product |
-| DELETE | `/api/products/{id}` | ✅ Admin | Delete product |
-| POST | `/api/products/{id}/image` | ✅ Admin | Upload product image |
-
-### Cart (UserId from JWT)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/cart` | ✅ User | Get user's cart |
-| POST | `/api/cart` | ✅ User | Add to cart |
-| PUT | `/api/cart` | ✅ User | Update cart item quantity |
-| DELETE | `/api/cart/{productId}` | ✅ User | Remove from cart |
-
-### Orders (UserId from JWT)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/orders` | ✅ User | Place order (from cart) |
-| GET | `/api/orders` | ✅ User | View order history |
-| GET | `/api/orders/{id}` | ✅ User | Get order details |
-
-### File Management
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/image/upload` | ✅ User/Admin | Upload general image |
-
----
-
-## 🧪 Testing with Postman
-
-### Step 1: Register a User
-```
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john@example.com",
-  "password": "Password123!",
-  "address": "123 Main St"
-}
-```
-
-### Step 2: Login
-```
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "Password123!"
-}
-```
-Response: `{ "isSuccess": true, "data": "<JWT_TOKEN>", "message": "Login successful." }`
-
-### Step 3: Use the Token
-For all authenticated endpoints, add this header:
-```
-Authorization: Bearer <YOUR_JWT_TOKEN>
-```
-
-### Step 4: Create a Category (Admin)
-*(Note: Promoted user role must be Admin in AspNetUserRoles database table)*
-```
-POST /api/categories
-Authorization: Bearer <ADMIN_JWT_TOKEN>
-Content-Type: application/json
-
-{
-  "name": "Electronics",
-  "description": "Electronic devices and gadgets"
-}
-```
-
-### Step 5: Get Products with Pagination
-```
-GET /api/products?pageNumber=1&pageSize=10&categoryId=1&name=laptop
-```
-
-### Step 6: Add to Cart
-```
-POST /api/cart
-Authorization: Bearer <YOUR_JWT_TOKEN>
-Content-Type: application/json
-
-{
-  "productId": 1,
-  "quantity": 2
-}
-```
-> Notice: `userId` is NOT in the request body! It's extracted from the JWT token.
-
-### Step 7: Place Order
-```
-POST /api/orders
-Authorization: Bearer <YOUR_JWT_TOKEN>
-Content-Type: application/json
-
-{
-  "shippingAddress": "123 Main St, Cairo, Egypt",
-  "paymentMethod": "CreditCard"
-}
+```text
+Developer
+      │
+      ▼
+GitHub Repository
+      │
+      ▼
+GitHub Actions
+      │
+      ├──────────────► Build Docker Image
+      │
+      ├──────────────► Trivy Image Scan
+      │
+      ├──────────────► Push Image to Docker Hub
+      │
+      └──────────────► Deploy to Kubernetes
+                              │
+                              ▼
+                     kubeadm Kubernetes Cluster
+                              │
+                ┌─────────────┴─────────────┐
+                ▼                           ▼
+        SQL Server Deployment        API Deployment
+                │                           │
+                └─────────────┬─────────────┘
+                              ▼
+                      ClusterIP Services
+                              ▼
+                 NGINX Ingress Controller
+                              ▼
+             AWS Application Load Balancer
+                              ▼
+                          Internet
 ```
 
 ---
 
-## 📦 Response Format
+# ☁ Infrastructure
 
-All API responses follow the **Result Pattern**:
-
-### Success Response
-```json
-{
-  "isSuccess": true,
-  "message": "Operation completed successfully",
-  "data": { ... },
-  "errors": []
-}
-```
-
-### Error Response
-```json
-{
-  "isSuccess": false,
-  "message": "Validation failed.",
-  "data": null,
-  "errors": [
-    "First name is required.",
-    "Invalid email format."
-  ]
-}
-```
+- Kubernetes Cluster created using **kubeadm**
+- Control Plane hosted on AWS EC2
+- Worker Nodes hosted on AWS EC2
+- NGINX Ingress Controller
+- AWS Application Load Balancer
+- AWS EBS CSI Driver
+- Persistent Volumes
+- Persistent Volume Claims
+- Kubernetes Secrets
+- Kubernetes Deployments
+- Kubernetes Services
 
 ---
 
-## 🎥 Postman Testing Video
+# 🔐 Security
 
-> 🎥 **Record a video** of yourself testing the API with Postman and add the link here:
-> 
-> `[Video Link: Your YouTube/Drive link here]`
+- Trivy vulnerability scanning
+- Kubernetes Secrets
+- Private Docker Hub authentication
+- SQL Server credentials stored securely
+- Separation between infrastructure and application configuration
 
 ---
 
-## 🛠️ Tech Stack
+# 📦 Kubernetes Resources
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **ASP.NET Core** | 9.0 | Web API framework |
-| **EF Core** | 9.0 | ORM for database access |
-| **SQL Server** | - | Local DB database |
-| **Microsoft Identity** | 9.0 | User management & authentication |
-| **JWT** | - | Token-based authentication |
-| **FluentValidation** | 11.9 | Request validation |
-| **AutoMapper** | 12.0.1 | Entity ↔ DTO mapping |
-| **Swagger** | 6.5.0 | API documentation |
-| **CORS** | - | Cross-origin request support |
+- Namespace
+- Secret
+- StorageClass
+- PersistentVolumeClaim
+- SQL Deployment
+- SQL Service
+- API Deployment
+- API Service
+- Ingress
+
+---
+
+# 💾 Persistent Storage
+
+## SQL Server
+
+- AWS EBS Volume
+- Persistent Volume Claim
+- Persistent Database Storage
+
+## Application
+
+- Persistent volume for uploaded images
+
+---
+
+# 🌐 Networking
+
+Internet
+
+↓
+
+AWS Application Load Balancer
+
+↓
+
+NGINX Ingress Controller
+
+↓
+
+ClusterIP Service
+
+↓
+
+ASP.NET Core API
+
+↓
+
+SQL Server
+
+---
+
+# 📈 Features
+
+✅ Dockerized Application
+
+✅ Automated CI/CD Pipeline
+
+✅ Automatic Docker Image Build
+
+✅ Trivy Vulnerability Scanning
+
+✅ Docker Hub Integration
+
+✅ Kubernetes Deployment
+
+✅ SQL Server on Kubernetes
+
+✅ Persistent Storage using AWS EBS
+
+✅ Kubernetes Secrets
+
+✅ NGINX Ingress
+
+✅ AWS Application Load Balancer
+
+✅ Rolling Updates
+
+✅ Infrastructure as Code using Kubernetes Manifests
+
+---
+
+# 📸 Screenshots
+
+Include screenshots for:
+
+- Architecture Diagram
+- GitHub Actions Pipeline
+- Docker Hub Repository
+- Trivy Scan
+- Kubernetes Pods
+- Kubernetes Services
+- Kubernetes Ingress
+- AWS ALB
+- AWS Target Group
+- Running Application
+
+---
+
+# 👨‍💻 My Responsibilities
+
+As the DevOps Engineer on this project, I was responsible for:
+
+- Designing the deployment architecture
+- Containerizing the application using Docker
+- Creating Docker Compose for local development
+- Building the GitHub Actions CI/CD pipeline
+- Integrating Trivy security scanning
+- Publishing Docker images to Docker Hub
+- Writing Kubernetes manifests
+- Deploying Kubernetes using kubeadm
+- Configuring AWS EBS CSI Driver
+- Provisioning persistent storage
+- Configuring SQL Server deployment
+- Managing Kubernetes Secrets
+- Configuring NGINX Ingress Controller
+- Integrating AWS Application Load Balancer
+- Troubleshooting Kubernetes networking, storage, ingress, and deployment issues
+- Automating the deployment process from source code to production
+
+---
+
+# 📚 Skills Demonstrated
+
+- Docker
+- Kubernetes
+- AWS
+- GitHub Actions
+- CI/CD
+- Trivy
+- Docker Hub
+- kubeadm
+- NGINX Ingress
+- AWS ALB
+- AWS EBS CSI Driver
+- Kubernetes Storage
+- Kubernetes Networking
+- Infrastructure as Code
+- DevOps Automation
+
+---
+
+# 🚀 Future Improvements
+
+- Helm Charts
+- ArgoCD GitOps Deployment
+- Prometheus Monitoring
+- Grafana Dashboards
+- Loki Logging
+- Horizontal Pod Autoscaler
+- TLS with cert-manager
+- AWS Route53 Integration
+- AWS ExternalDNS
+- Multi-Environment Deployment (Dev / Stage / Production)
+
+---
+
+# ⭐ If you found this project useful, don't forget to give it a Star!
